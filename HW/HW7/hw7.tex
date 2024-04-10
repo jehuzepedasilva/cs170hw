@@ -1,0 +1,579 @@
+\documentclass[11pt]{article}
+\usepackage{cs170}
+\usepackage{amssymb}
+\usepackage{bbm}
+
+\def\title{Homework 7}
+\def\duedate{3/11/2024, at 10:00 pm (grace period until 11:59pm)}
+
+\begin{document}
+\maketitle
+
+
+Due \textbf{\duedate}
+
+\question{Study Group}
+List the names and SIDs of the members in your study group.
+If you have no collaborators, you must explicitly write ``none''.
+
+\begin{solution} I worked on this homework with the following collaborators:
+\begin{itemize}
+    \item Lakshya Nagal, SID: 3037935253
+\end{itemize}
+\end{solution}
+
+\section*{4-Part Solutions}
+
+For all (and only) dynamic programming problems in this class, we would like you to follow a 4-part solution format:
+
+\begin{enumerate}
+    \item \textbf{Algorithm Description:} since dynamic programming algorithms can be difficult to explain, you should follow the template below to optimize clarity.
+    \begin{enumerate}
+        \item \textit{Define your subproblem.} In words, define a function $f$ so that the evaluation of $f$ on a certain input gives the answer to the stated problem.
+        
+        You should clearly state how many parameters $f$ has, what those parameters represent, what $f$ evaluated on those parameters represents, and what inputs you should feed into $f$ to get the answer to the stated problem.
+        
+        \item \textit{Provide your recurrence relation}. More precisely, give a recurrence relation showing how to compute $f$ recursively, and make sure to provide base cases. If you need to use certain data structures to make computation of $f$ faster, you should say so.
+        
+        \item \textit{Subproblem Ordering:} describe the order in which you should solve the subproblems to obtain the final answer.
+    \end{enumerate}
+
+    \item \textbf{Proof of Correctness:} provide some inductive proof that shows why your DP algorithm computes the correct result.
+
+    \item \textbf{Runtime Analysis:} analyze the runtime of your algorithm.
+
+    \item \textbf{Space Analysis:} analyze the space/memory complexity of your algorithm.
+\end{enumerate}
+
+
+\question{Not Too Much DP}
+
+\begin{enumerate}[(a)]
+    \item Given an array $A$ with positive or negative integers (i.e. non-zero), we want to find the subarray (i.e. contiguous sequence of elements in the array) that creates the maximum product. We will use 1-dimensional DP to approach this problem where $dp[i]$ will return the maximum product and minimum product seen so far using elements up to (and including) $i$-th index from the array. Notice here we need to keep track of the minimum product as well; in case the next element in the array is negative, the minimum product might become the maximum product after new multiplication. 
+
+    Given the DP subproblems below, perform the following:
+    \begin{center}
+    \begin{tabular}{ |c|c|c|c|c|c| } 
+    \hline
+    0 & 1 & 2 & 3 & 4 & 5\\ 
+    \hline
+    $(-2, -2)$ & $(3, -6)$ & $(24, -12)$ & $(48, -24)$ & $(24, -48)$ & $(96, -192)$\\
+    \hline
+    \end{tabular}
+    \end{center}
+    \begin{enumerate}[(i)]
+        \item Recover the original array.\\
+        \begin{solution}
+            \begin{verbatim}
+                def max_product_iter(A, n):
+                    max_p = min_p = A[0]
+                    dp = [(0, 0) for _ in range(n)]
+                    dp[0] = (A[0], A[0])
+                
+                    for i in range(1, n):
+                        if A[i] < 0:
+                            max_p, min_p = min_p, max_p
+                        max_p = max(A[i], max_p * A[i]) 
+                        min_p = min(A[i], min_p * A[i]) 
+                        dp[i] = (max_p, min_p)
+                    return dp, dp[n-1]
+                \end{verbatim}
+            Through trial and error and knowing that A[0] = -2 and A[1] = 3, I arrived at the array
+            $A = [-2, 3, -4, 2, -1, 4]$ which did in fact result in the table above.
+        \end{solution}
+    
+        \item Identify the subarray that produces the maximum product.
+        \newline\begin{solution}
+            The subarray that results in the max product of $96$ given $A$ is $[3, -4, 2, -1, 4]$
+        \end{solution}
+    \end{enumerate}
+    \item Given strings $s_1$, $s_2$, and $s_3$, find whether $s_3$ can be formed by an interleaving of $s_1$ and $s_2$. $s_3$ is defined to be an interleaving of $s_1$ and $s_2$ if $s_3$ contains all of the characters of $s_1$ and $s_2$ and only those characters. Additionally, the order of the characters of $s_1$ and $s_2$ are preserved in $s_3$.
+    
+    % More formally, an interleaving of two strings $a$ and $b$ is a configuration where $a$ and $b$ are divided into $n$ and $m$ substrings respectively, such that: 
+    % \begin{itemize}
+    %     \item $a = a_1 + a_2 + \cdots + a_n$
+    %     \item $b = b_1 + b_2 + \cdots + b_m$
+    %     \item $|n - m| \leq 1$
+    % \end{itemize}
+    % where $a_i$'s are substrings of $a$, and $b_j$'s are substrings of $b$. An interleaving is 
+    % \[a_1 + b_1 + a_2 + b_2 + a_3 + b_3 + \cdots \text{ or } b_1 + a_1 + b_2 + a_2 + b_3 + a_3 + \cdots\] 
+    Let $l_1$, $l_2$, $l_3$ be the lengths of $s_1$, $s_2$ and $s_3$ respectively. We use 2-dimensional DP to approach this problem where $dp[i][j] = True$ if the substring $s_3[: i + j]$ is an interleaving of substrings $s_1[:i]$ and $s_2[:j]$, and False otherwise.
+
+    \begin{enumerate}[(i)]
+        \item For this subpart, let $s_1$ = ``cbadb", $s_2$ = ``badda", $s_3$ = ``cbbadadadb". Using those inputs, fill in the missing grids in the following table:
+        \begin{center}
+        \begin{tabular}{ |c|c|c|c|c|c|c| } 
+        \hline
+        - & 0 & 1 & 2 & 3 & 4 & 5 \\ 
+        \hline
+        0 & T & T & T & F & F & F\\ 
+        \hline
+        1 & F & T & T & F & F & F \\ 
+        \hline
+        2 & F & F & T & F & F & \color{blue}F \\ 
+        \hline
+        3 & F & F & T & \color{blue}T & F & F \\ 
+        \hline
+        4 & F & F & \color{blue}F & T & \color{blue}F & \color{blue}F \\  
+        \hline
+        5 & F & F & \color{blue}F & T & \color{blue}T & T \\ 
+        \hline
+        \end{tabular}
+        \end{center}
+        Note that for this table, the columns correspond to the characters of $s_1$ and the rows to $s_2$. Hence $dp[row][col]$ is true if $s_3[:row + col]$ is a valid interleaving of $s_1[:col]$ and $s_2[:row]$. Additionally, $dp[row][0]$ corresponds to checking whether $s_3[:row] == s_2[:row]$, and $dp[0][col]$ corresponds to checking whether $s_3[:col] == s_1[:col]$.\\
+        \begin{solution}\\
+            $dp[5][2] = s_1[:5] + s_2[:2] = $ ``cbadb'' + ``bad'' $\ne$ ``cbbadad'' $ = s_3[:7] \rightarrow F$\\
+            $dp[3][3] = s_1[:3] + s_2[:3] = $ ``cba'' + ``bad'' $=$ ``cbbada' $ = s_3[:6] \rightarrow T$\\
+            $dp[2][4] = s_1[:2] + s_2[:4] = $ ``cb'' + ``badd'' $\ne$ ``cbbada'' $ = s_3[:6] \rightarrow F$\\
+            $dp[4][4] = s_1[:4] + s_2[:4] = $ ``cbad'' + ``bbad'' $\ne$ ``cbbadada'' $ = s_3[:8] \rightarrow F$\\
+            $dp[5][4] = s_1[:5] + s_2[:4] = $ ``cbadb'' + ``badd'' $\ne$ ``cbbadadad'' $ = s_3[:9] \rightarrow F$\\
+            $dp[2][5] = s_1[:2] + s_2[:5] = $ ``cb'' + ``badda'' $\ne$ ``cbbadad'' $ = s_3[:7] \rightarrow F$\\
+            $dp[4][5] = s_1[:4] + s_2[:5] = $ ``cbad'' + ``badda'' $=$ ``cbbadadad'' $ = s_3[:9] \rightarrow T$
+        \end{solution}\\
+        \item For this subpart, you are given $s_3$ = ``sponpdaens" and part of the DP table. Using those information, recover $s_1$ and $s_2$. (Note there might be multiple $s_1$, $s_2$ combinations that will produce the same table. If multiple combinations are possible, list out all of them.)
+
+        \begin{center}
+            \begin{tabular}{ |c|c|c|c|c|c|c| } 
+            \hline
+            - & 0 & 1 & 2 & 3 & 4 & 5 \\ 
+            \hline
+            0 & T & - & - & - & - & -\\ 
+            \hline
+            1 & - & T & - & - & - & - \\ 
+            \hline
+            2 & - & - & T & F & F & - \\ 
+            \hline
+            3 & - & - & - & - & T & - \\ 
+            \hline
+            4 & - & - & - & - & T & F \\  
+            \hline
+            5 & - & - & - & - & - & T \\ 
+            \hline
+            \end{tabular}
+        \end{center}
+        \begin{solution}
+            The string possibilities are:
+            \begin{center}
+                \begin{tabular}{ |c|c| } 
+                \hline
+                 $s_1 = $``podan'' & $s_2$ = ``snpes'' \\ 
+                \hline
+                $s_1 = $``pndan'' & $s_2$ = ``sopes'' \\ 
+                \hline
+                $s_1 = $``sodan'' & $s_2$ = ``pnpes'' \\ 
+                \hline
+                $s_1 = $``sndan'' & $s_2$ = ``popes'' \\ 
+                \hline
+                \end{tabular}
+            \end{center}
+            We arrive at this conclusion by noting: \\
+            $dp[1][1]=T \rightarrow s_3[:2] =$ sp, then...
+            \begin{center}
+                \begin{tabular}{ |c|c| } 
+                \hline
+                 $s_1 = $``s'' & $s_2$ = ``p'' \\ 
+                 \hline
+                 $s_1 = $``p'' & $s_2$ = ``s'' \\ 
+                \hline
+                \end{tabular}
+            \end{center}
+            $dp[2][2]=T \rightarrow s_3[:4] =$ spon, and $s_1[:2]$ and $s_2[:2]$ then...
+            \begin{center}
+                \begin{tabular}{ |c|c| } 
+                    \hline
+                    $s_1 = $``po'' & $s_2$ = ``sn'' \\ 
+                    \hline
+                    $s_1 = $``pn'' & $s_2$ = ``so'' \\ 
+                    \hline
+                    $s_1 = $``so'' & $s_2$ = ``pn'' \\ 
+                    \hline
+                    $s_1 = $``sn'' & $s_2$ = ``po'' \\ 
+                \hline
+                \end{tabular}
+            \end{center}
+            $dp[3][2]=F \rightarrow s_3[:5] =$ sponp, and $s_1[:3]$ and $s_2[:2]$ then...
+            \begin{center}
+                \begin{tabular}{ |c|c| } 
+                    \hline
+                    $s_1 = $``po'' & $s_2$ = ``snp'' \\ 
+                    \hline
+                    $s_1 = $``pn'' & $s_2$ = ``sop'' \\ 
+                    \hline
+                    $s_1 = $``so'' & $s_2$ = ``pnp'' \\ 
+                    \hline
+                    $s_1 = $``sn'' & $s_2$ = ``pop'' \\ 
+                    \hline
+                \end{tabular}
+            \end{center}
+            $dp[4][2]=F \rightarrow s_3[:6] =$ sponpd, and $s_1[:4]$ and $s_2[:2]$ then...
+            \begin{center}
+                \begin{tabular}{ |c|c| } 
+                    \hline
+                    $s_1 = $``poda'' & $s_2$ = ``snpp'' \\ 
+                    \hline
+                    $s_1 = $``pnda'' & $s_2$ = ``sopp'' \\ 
+                    \hline
+                    $s_1 = $``soda'' & $s_2$ = ``pnp'' \\ 
+                    \hline
+                    $s_1 = $``snda'' & $s_2$ = ``pop'' \\ 
+                    \hline
+                \end{tabular}
+            \end{center}
+            We continue on like this eventually arriving at the mentioned possibilities for $s_1$ and $s_2$.
+        \end{solution}
+        \item For this subpart, determine whether the following subtables are possible (subtable is simply a small part of the entire table). Give a brief justification/reasoning to your answer.
+
+        \begin{enumerate}[1.]
+            \item 
+            %\begin{left}
+            \begin{tabular}{ |c|c| } 
+            \hline
+            T & T \\ 
+            \hline
+            T & T \\
+            \hline
+            \end{tabular}\\
+            \begin{solution}
+                This can be true as can be seen in the table from part (i).
+            \end{solution}
+            \item 
+            \begin{tabular}{ |c|c| } 
+            \hline
+            T & F \\ 
+            \hline
+            F & T \\
+            \hline
+            \end{tabular}\\
+            \begin{solution}
+                This is true. Consider the strings from above,``podan'', ``snpes''.
+                We have $dp[4][4] = T, dp[5][4] = F, dp[5][5] = T,$ and $dp[4][5] =$ interleaving ``poda'' and ``snpes'' the best we can do is ``sponpdae'' $\ne$ ``sponpdaen'' $ = s_3[:9] \rightarrow F$
+                giving us a subtable like the one here.
+            \end{solution}
+            \item 
+            \begin{tabular}{ |c|c| } 
+            \hline
+            T & F \\ 
+            \hline
+            T & F \\
+            \hline
+            \end{tabular}\\
+            \begin{solution}
+                This can be true as can be seen in the table from part (i).
+            \end{solution}
+
+        \end{enumerate}
+    \end{enumerate}
+    
+\end{enumerate}
+
+\newpage
+
+\question{Egg Drop} 
+
+You are given $m$ identical eggs and an $n$ story building. You need to figure out the highest floor $h \in \{0, 1, 2, \ldots n\}$ that you can drop an egg from without breaking it. Each egg will never break when dropped from floor $h$ or lower, and always breaks if dropped from floor $h+1$ or higher. ($h = 0$ means the egg always breaks). Once an egg breaks, you cannot use it any more. However, if an egg does not break, you can reuse it.
+
+Let $f(n, m)$ be the minimum number of egg drops that are needed to find $h$ (regardless of the value of $h$).
+
+\begin{subparts}
+\subpart Find $f(1,m)$, $f(0, m)$, $f(n,1)$, and $f(n,0)$. Briefly explain your answers.\\
+\begin{solution}\\
+    $f(1, m) = 1$. We have two possible results, it either breaks on the first floor or it doesn't, in either case the minimum number of egg drops is 1.\\
+    $f(0, m) = 0$. If we are on floor 0 the minimum number of egg drops needed is 0.\\
+    $f(n, 1) = n$. If we only have 1 egg, then we have to drop the egg starting from the first floor, until
+    he breaks or we reach the $n^{th}$ floor.\\
+    $f(n, 0) = -\infty$. If we have 0 eggs, then the minimum number of egg drops we can perform is undefined, which will be represented by $-\infty$.
+\end{solution}
+\subpart Consider dropping an egg at floor $x$ when there are $n$ floors and $m$ eggs left. Then, it either breaks, or doesn't break. In either scenario, determine the minimum remaining number of egg drops that are needed to find $h$ in terms of $f(\cdot, \cdot)$, $n$, $m$, and/or $x$.
+\begin{solution}
+    \begin{itemize}
+        \item $f(n-x, m)$ if the egg does not break at the $x^{th}$ floor, we know $h$ is at a floor above, so check $x+1, x+2, \dots, n$.
+        \item $f(x-1, m-1)$ if the egg does break, we know we have found $h$, or its at a lower floor, so we check floor $x-1, x-2, \dots, 1$.
+    \end{itemize}
+\end{solution}
+\subpart Find a recurrence relation for $f(n,m)$. 
+
+\emph{Hint: whenever you drop an egg, call whichever of the egg breaking/not breaking leads to more drops the ``worst-case event''. Since we need to find $h$ regardless of its value, you should assume the worst-case event always happens.}\\
+\begin{solution}\\
+    $f(n, m) = 1 + min\{max\{f(n-x, m), f(x-1, m-1)\}\}$, regardless of whether the egg the broke, we used an egg so add we add 1. We take the max because in the worst case we have $n$ floors and
+    we have 1 egg. In this case we have to linearly check every floor which will give us the worst number of egg drops but guarantees that we find $h$ with the given egg.
+    Then we take the minimum over that to find the minimum number of egg drops, after considering every floors possibilities.
+\end{solution}
+\subpart If we want to use dynamic programming to compute $f(n, m)$ given $n$ and $m$, in what
+order do we solve the subproblems?\\
+\begin{solution}
+    We would want to solve the problems in a bottom up way so that we solve all the smaller subproblems before solving the bigger
+    subproblems in order to use the information from the smaller subproblems to efficiently compute the larger ones. In other words, find all the bases cases 
+    first and use that to solve $f(1, 1), f(2, 1), ..., f(n, m)$
+\end{solution}
+\subpart Based on your responses to previous parts, analyze the runtime complexity of your DP algorithm.\\
+\begin{solution}
+    We are going to have $O(nm)$ subproblems  with each subproblem taking at most $O(n)$ to compute giving us a total runtime of $O(n^2m)$.
+\end{solution}
+\subpart Analyze the space complexity of your DP algorithm.\\
+\begin{solution}
+    We need to store all the intermediate values of $n, m$ so our space complexity is $O(nm)$.
+\end{solution}
+
+\subpart (\textbf{Extra Credit}) Is it possible to modify your algorithm above to use less space? If so, describe your modification and re-analyze the space complexity. If not, briefly justify. 
+\begin{solution}
+    \begin{center}
+        \begin{tabular}{ c|c|c|c|c|c|c| } 
+        - & 0 & 1 & 2 & 3 & $\cdots$ & m \\ 
+        \hline
+        0 & 0 & 0 & 0 & 0& $\cdots$ & 0\\ 
+        \hline
+        1 & $-\infty$ & 1 & 1 & 1 & $\cdots$ & 1\\ 
+        \hline
+        2 & $-\infty$ & 2 & $\bigstar$ &  &  & \\ 
+        \hline
+        3 & $-\infty$ & 3 &  &  &  & \\ 
+        \hline
+        \vdots & \vdots & \vdots &  &  &  & \\  
+        \hline
+        n & $-\infty$ & n &  &  &  &  \\ 
+        \hline
+        \end{tabular}
+    \end{center}
+    For $\bigstar$ at $2, 2$ or subproblem $f(2, 2)$, we only need to consider the two suproblems $f(2, 1)$ and $f(2, 2)$, generally for, subproblem
+    $f(n, m)$ we only need to consider subproblems $f(n-k, m)$ for some $0 \le k \le n$, and $f(n-1, m-1)$, so we only need to store the current $m$, and previous $n$ floors which 
+    is bounded by $O(n)$.  
+\end{solution}
+\end{subparts}
+
+\newpage
+
+\question{My Dog Ate My Homework} One morning, you wake up to realize that your dog ate some of your CS 170 homework paper, which is an $m \times n$ rectangular grid of squares. Some of the squares have holes chewed through them, and you cannot use paper that has a hole in it. You would like to cut the paper into pieces so as to
+separate all the tattered squares from all the clean, un-bitten squares. You want to do this so that you can save as much as your work as possible.
+
+For example, shown below is a $6 \times 4$ piece of paper where the bitten squares are marked with *.  As shown in the picture, one can separate the bitten parts out in
+exactly four  cuts. \\
+
+\begin{tabular}{ccc}
+%
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+*  & * &  & *   \\ \hline
+C  & S &  & *   \\ \hline
+1 &7  & 0 &  *  \\ \hline
+  &  &  & *   \\ \hline
+  &  & * & *   \\ \hline
+  &  & * & *   \\ \hline
+\end{tabular}
+%
+ $\Longrightarrow$
+%
+\begin{tabular}{|c|c|}
+\hline
+ * &  *     \\ \hline
+ C & S     \\ \hline
+1 & 7    \\ \hline
+  &      \\ \hline
+  &     \\ \hline
+  &      \\ \hline
+\end{tabular}
+
+\begin{tabular}{|c|c|}
+\hline
+    & *   \\ \hline
+    & *   \\ \hline
+ 0   & *   \\ \hline
+    &  *  \\ \hline
+   * & *   \\ \hline
+   * &  *  \\ \hline
+\end{tabular}
+%
+ $\Longrightarrow$
+%
+ \begin{tabular}{c}
+ \begin{tabular}{|c|c|}
+\hline
+ * &  *     \\ \hline
+\end{tabular} \\ \\
+ \begin{tabular}{|c|c|}
+\hline
+C& S    \\ \hline
+ 1& 7    \\ \hline
+  &      \\ \hline
+  &     \\ \hline
+  &      \\ \hline
+\end{tabular}
+\end{tabular}
+%
+\begin{tabular}{|c|c|}
+\hline
+    & *   \\ \hline
+    & *   \\ \hline
+ 0   & *   \\ \hline
+    & *   \\ \hline
+   * & *   \\ \hline
+   * &  *  \\ \hline
+\end{tabular}
+%
+%
+ $\Longrightarrow$
+%
+ \begin{tabular}{c}
+ \begin{tabular}{|c|c|}
+\hline
+ * &  *     \\ \hline
+\end{tabular} \\ \\
+ \begin{tabular}{|c|c|}
+\hline
+C & S     \\ \hline
+1 & 7    \\ \hline
+  &      \\ \hline
+  &     \\ \hline
+  &      \\ \hline
+\end{tabular}
+\end{tabular}
+%
+\begin{tabular}{|c|}
+\hline
+       \\ \hline
+        \\ \hline
+   0     \\ \hline
+        \\ \hline
+   *    \\ \hline
+   *    \\ \hline
+\end{tabular}
+%
+\begin{tabular}{|c|}
+\hline
+    *   \\ \hline
+    *   \\ \hline
+    *   \\ \hline
+    *   \\ \hline
+    *   \\ \hline
+    *  \\ \hline
+\end{tabular} \\ \\
+ $\Longrightarrow$
+%
+ \begin{tabular}{c}
+ \begin{tabular}{|c|c|}
+\hline
+ * &  *     \\ \hline
+\end{tabular} \\ \\
+ \begin{tabular}{|c|c|}
+\hline
+C & S    \\ \hline
+1 & 7    \\ \hline
+  &      \\ \hline
+  &     \\ \hline
+  &      \\ \hline
+\end{tabular}
+\end{tabular}
+%
+\begin{tabular}{c}
+    \begin{tabular}{|c|}
+            \hline
+    \hspace{1.8ex}  \\ \hline
+             \\ \hline
+      0    \\ \hline
+         \\ \hline
+    \end{tabular} \\ \\
+    \begin{tabular}{|c|}
+    \hline
+    *    \\ \hline
+      *    \\ \hline
+     \end{tabular}
+\end{tabular}
+%
+\begin{tabular}{|c|}
+\hline
+    *   \\ \hline
+    *   \\ \hline
+    *   \\ \hline
+    *   \\ \hline
+    *   \\ \hline
+    *  \\ \hline
+\end{tabular}
+%
+%
+\end{tabular}
+\vspace{0.4cm}
+
+(Each {\it cut} is either horizontal or vertical, and of
+one piece of paper at a time.)
+
+Design a DP based algorithm to find the smallest number of cuts needed to separate all the bitten parts out.
+%
+Formally, the problem is as follows:
+
+\begin{quote}
+\textbf{Input:}  Dimensions of the paper $m \times n$ and an
+array $P[i,j]$ such that $P[i,j] = 1$ if and only if the $ij^{th}$
+square has holes bitten into it.
+
+\textbf{Goal:} Find the minimum number of cuts needed so that the $P[i, j]$ values of each piece are either all 0 or all 1.
+\end{quote}
+
+\begin{subparts}
+    \subpart Define your subproblem.
+
+    \emph{Hint: try making any arbitrary cut. What two subproblems do you now have?}\\
+    \begin{solution}
+ Let $f(m, n, x, y)$ be the minimum number of cuts given a matrix of size $m \times n$ and the top right corner coordinate $(x, y)$. The subproblems arise when making horizontal or vertical cuts, resulting in submatrices with dimensions $m' \times n$ or $m \times n'$.     \end{solution}
+    \subpart Write down the recurrence relation for your subproblems. A fully correct recurrence relation will always have the base cases specified.\\
+    \begin{solution}
+        $$
+        f(m,n, x, y)=
+        \begin{cases}
+        0, \text{ if $n = 0$ or $m=0$}\\
+        0, \text{ if $\forall_{x, y} P[x][y] = 0$ or $\forall_{x, y}P[x][y] = 1$}\\
+        \min \begin{cases} 1 + f(m, n', x', y') + f(m, n', x', y') \\ 1 + f(m', n, x', y') + f(m', n, x', y')\end{cases}
+        \end{cases}
+        $$
+        Where $m \times n', m' \times n$ are the new dimensions of the a submatrix when performing a vertical and horizontal cut, and $(x', y')$ are the new top right corner coordinates
+        of the submatrices after the cut. To find the new coordinates we can use the indices of the matrix where we are performing the cut to denote the left submatrix or bottom submatrix, then 
+        we can subtract the length of the new right or top submatrix to find the starting coordinates of that submatrix.
+    \end{solution}
+    \subpart Describe the order in which we should solve the subproblems in your DP algorithm.
+    \begin{solution}
+        The problems should be solved bottom up to find the minimum cuts with a smaller subarrays and use this information to 
+        solve for bigger subarrays.
+    \end{solution}
+\subpart What is the runtime complexity of your DP algorithm? Provide a justification.\\
+\begin{solution}
+    we have $O(mn)$ subproblems, for each subproblem we need to identify whether or not preform a cut, which is bounded by $O(mn)$, then we need to find the minimum 
+    which could cost $O(n)$. For a total of $O(m^2n^3)$. 
+\end{solution}
+\subpart What is the space complexity of your algorithm? Provide a justification.\\
+\begin{solution}
+    We store the results in an $m \times n$ array, so our space complexity is $O(mn)$.
+\end{solution}
+\end{subparts}
+
+\newpage
+
+\question{Knightmare}
+Give a dynamic programming algorithm to find the number of ways you can place knights on an $L$ by $H$ ($L < H$) chessboard such that no two knights can attack each other (there can be any number of knights on the board, including zero knights). Knights can move in a \href{https://i.stack.imgur.com/Pebav.png}{$2 \times 1$ shape pattern} in any direction. 
+
+\textbf{Provide a 4-part solution. Your algorithm's runtime should be $O(2^{3L}LH)$, and return your answer mod 1773.}
+
+\emph{Hint: if a knight is on row $i$, what rows on the chessboard can it affect?}\\
+\begin{solution}\\
+    \textbf{Algorithm Description:}
+    \begin{itemize}
+        \item[(a)] Let $f(row, bitString_{row}, bitString_{row-1})$ be the number of ways we can place knights on $row$ of the grid, where $bitString_{row}$ and $bitString_{row-1}$ is a possible configurations of $row$ and previous $row$.
+        \item[(b)]  
+        $$
+        f(i, bitString_i, bitString_{i-1})_{0 \le i < H}=
+        \begin{cases}
+        1, \text{ if $row=0$}\\
+        2^L, \text{ if } row = 1\\
+        f(i-1, bitString_{i-1}, bitString_{i}) + \\f(i-2, bitString_{i-2}, bitString_{i}), \text{otherwise}
+        \end{cases}
+        $$
+        where $f(i-1, bitString_{i-1}, bitString_{i}) = \sum \mathbbm{1}_{is\_valid(bitString_i, bitString_{i-1})}$ over all possible bit strings for $bitString_{i}$ and $bitString_{i-1}$. $is\_valid(a, b)$ checks if two bit strings are a valid configuration of knights.
+        Additionally we return this mod $1773$.
+        \item[(c)] The order in which the subproblems should be solved should be bottom up, so that we can 
+        solve the smaller subproblems before trying to solve the bigger subproblems. In this manner, we can take advantage of the dp table to compute larger subproblems.
+    \end{itemize}
+    \textbf{Proof of Correctness: }Essentially what is happening, is that I am generating every possible string for a row $n$, then I am fixing that string and checking all 
+    possible configurations for the $n-1$ row that are valid with the current configuration of row $n$, and checking that it is also valid for 
+    all possibilities for $n-2$ row. I make use of that fact that for any row $n$, I only need to ensure that the $n-1, n-2, n+1, n+2$ rows are valid given row $n$'s configuration.\\
+    \textbf{Runtime Analysis:} The time to check if two strings of length $L$ are a valid configuration is $O(L)$, for each of the three rows we compare, there are $2^L$ possibilities which is 
+    $O(2^{3L})$. We also iterate through every row which is O(H), giving us a total runtime of $O(2^{3L}LH)$.\\
+    \textbf{Space Complexity:} We maintain an $H \times L$ grid, so our space complexity is $O(HL)$.
+\end{solution}
+\end{document}
